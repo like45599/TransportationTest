@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>解决方案选择</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <!-- 引入 Element UI 样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入 Element UI 组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <!-- 引入 Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+<div id="app">
+    <el-form :model="formInline" ref="form" class="demo-form-inline" method="post">
+        <el-form-item label="交通问题" prop="question">
+            <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 10}" v-model="formInline.question" placeholder="请输入交通问题" name="question"></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="onSubmit">查询</el-button>
+            <el-button @click="onReset">重置</el-button>
+            <el-button type="info"  @click="returnToIndex">返回主页</el-button>
+        </el-form-item>
+    </el-form>
+    <div v-if="matchingPlans.length > 0">
+        <el-table :data="matchingPlans" style="width: 100%" @selection-change="handleSelectionChange">
+            <el-table-column type="selection" width="55"></el-table-column>
+            <el-table-column prop="question" label="根本问题" sortable></el-table-column>
+            <el-table-column prop="solution" label="解决方案" sortable></el-table-column>
+            <el-table-column prop="reference" label="依据" sortable></el-table-column>
+            <el-table-column prop="score" label="评分" sortable :sort-method="sortScore"></el-table-column>
+        </el-table>
+        <div>
+            <el-button type="primary" @click="submitSelection">提交选中的方案</el-button>
+            <el-button size="small"  @click="returnToIndex">返回主页</el-button>
+        </div>
+    </div>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                formInline: {
+                    question: '',
+                },
+                matchingPlans: [], // 存储匹配结果
+                selectedSolutions: [] // 存储选中的解决方案
+            };
+        },
+        // created() {
+        //     this.loadProjectInfo();
+        //     console.log('项目名称1', this.formInline.projectName);
+        //
+        // },
+        methods: {
+            onSubmit() {
+                axios.post("http://localhost:8080/solutions", this.formInline)
+                    .then(resp => {
+                        if (Array.isArray(resp.data) && resp.data.length > 0) {
+                            this.matchingPlans = resp.data.sort((a, b) => b.score - a.score); // 按评分降序排列
+                        } else {
+                            this.$message.warning("未找到匹配结果");
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        this.$message.error("查询失败");
+                    });
+            },
+            onReset() {
+                this.$refs.form.resetFields();
+            },
+            handleSelectionChange(selection) {
+                this.selectedSolutions = selection;
+            },
+            loadProjectInfo() {
+                var projectInfo = JSON.parse(localStorage.getItem('projectInfo'));
+                if (projectInfo) {
+                    // 需要使用的projectInfo
+                    this.formInline.projectName = projectInfo.projectName;
+                }
+            },
+            submitSelection() {
+                // // 提交选中的解决方案
+                // console.log('项目名称', this.formInline.projectName);
+                // console.log('选中的解决方案：', this.selectedSolutions);
+                //
+                // // 获取项目名称
+                // var projectInfo = JSON.parse(localStorage.getItem('projectInfo'));
+                // if (projectInfo) {
+                //     var projectName = projectInfo.projectName;
+                //
+                //     // 构造包含项目名称的数据
+                //     var dataToSend = {
+                //         selectedSolutions: this.selected,
+                //         projectName: projectName
+                //     };
+                localStorage.setItem('selectedSolutions', JSON.stringify(this.selectedSolutions));
+
+                    axios.post("http://localhost:8080/submitSolution", this.selectedSolutions)
+                        .then(response => {
+                            this.$message.success("解决方案提交成功");
+                            // 这里可以添加其他成功提交后的逻辑
+                        })
+                        .catch(error => {
+                            console.error(error);
+                            this.$message.error("提交失败");
+                        });
+                // } else {
+                //     this.$message.error("未找到项目信息");
+                // }
+            },
+            sortScore(a, b) {
+                return b.score - a.score; // 评分降序排序
+            },
+            returnToIndex() {
+                // 这里替换为返回主页的逻辑
+                window.location.href = 'index.html';
+            }
+        }
+    });
+</script>
+</body>
+</html>

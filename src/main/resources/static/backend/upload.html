@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>图片上传</title>
+    <!-- 引入 Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <!-- 引入 Element UI 样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入 Element UI 组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+</head>
+
+<body>
+<div id="app">
+    <el-upload
+            class="upload-demo"
+            ref="upload"
+            drag
+            action="http://localhost:8080/traffic/upload"
+            :before-upload="beforeUpload"
+            :on-success="handleSuccess"
+            :file-list="fileList"
+            multiple
+            :auto-upload="false">
+        <i class="el-icon-upload"></i>
+        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+        <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
+    </el-upload>
+
+    <!-- 显示已上传的图片 -->
+    <div v-if="fileList.length > 0">
+        <h3>待上传的图片:</h3>
+        <ul>
+            <li v-for="file in fileList" :key="file.name">{{ file.name }}</li>
+        </ul>
+    </div>
+
+    <el-button size="small" type="success" @click="submitUpload">保存图片</el-button>
+    <el-button size="small" type="info" @click="returnToIndex">返回主页</el-button>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                fileList: []
+            };
+        },
+        created() {
+            this.loadProjectInfo();
+        },
+        methods: {
+            beforeUpload(file) {
+                // 这里可以添加上传前的检查逻辑
+                return true;
+            },
+            handleSuccess(response, file, fileList) {
+                console.log('上传成功', response, file, fileList);
+            },
+            submitUpload() {
+                this.$refs.upload.submit();
+            },
+            returnToIndex() {
+                // 这里替换为返回主页的逻辑
+                window.location.href = 'index.html';
+            },
+            loadProjectInfo() {
+                var projectInfo = JSON.parse(localStorage.getItem('projectInfo'));
+                if (projectInfo) {
+                    // 需要使用的projectInfo
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>

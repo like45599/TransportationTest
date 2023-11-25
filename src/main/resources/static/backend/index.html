@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>主页面 - 项目数据收集</title>
+    <!-- 引入 Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <!-- 引入 Element UI 样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入 Element UI 组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <!-- 引入 Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+<div id="app">
+    <el-form ref="form" :model="formData" label-width="120px">
+        <el-form-item label="项目名称">
+            <el-input v-model="formData.projectName"></el-input>
+        </el-form-item>
+
+        <el-form-item label="建设单位">
+            <el-input v-model="formData.constructionUnit"></el-input>
+        </el-form-item>
+
+        <!-- 其他需要的字段 -->
+
+
+        <!-- 添加跳转链接 -->
+        <el-form-item>
+            <el-button type="success" @click="goToUpload">上传图片</el-button>
+            <el-button type="info" @click="goToSolutions">选择解决方案</el-button>
+        </el-form-item>
+
+        <el-form-item>
+            <el-button type="primary" @click="submitForm">提交</el-button>
+            <el-button @click="resetForm">重置</el-button>
+        </el-form-item>
+    </el-form>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                formData: {
+                    projectName: '',
+                    constructionUnit: '',
+                    // 其他字段
+                }
+            };
+        },
+        created() {
+          this.loadFormData();
+        },
+        methods: {
+            // submitForm() {
+            //     console.log('提交的数据：', this.formData);
+            //     // 处理提交逻辑
+            //     axios.post('http://localhost:8080/submit', this.formData)
+            //         .then(response => {
+            //             console.log('提交成功', response);
+            //         })
+            //         .catch(error => {
+            //             console.error('提交失败', error);
+            //         });
+            // },
+            submitForm() {
+                var selectedSolutions = JSON.parse(localStorage.getItem('selectedSolutions') || '[]');
+                var dataToSend = {
+                    ...this.formData,
+                    selectedSolutions: selectedSolutions
+                };
+
+                axios.post('http://localhost:8080/submit', dataToSend)
+                    .then(response => {
+                        console.log('提交成功', response);
+                        // 提交后的处理...
+                    })
+                    .catch(error => {
+                        console.error('提交失败', error);
+                    });
+            },
+            loadFormData() {
+                var savedFormData = localStorage.getItem('formData');
+                if (savedFormData) {
+                    this.formData = JSON.parse(savedFormData);
+                    // 可以考虑在数据加载后清除localStorage
+                    localStorage.removeItem('formData');
+                }
+            },
+            resetForm() {
+                this.$refs.form.resetFields();
+            },
+            goToUpload() {
+                localStorage.setItem('projectInfo', JSON.stringify(this.formData));
+                window.location.href = 'upload.html'; // 调整为实际的上传页面路径
+            },
+            goToSolutions() {
+                localStorage.setItem('projectInfo', JSON.stringify(this.formData));
+                window.location.href = 'solutions.html'; // 调整为实际的解决方案选择页面路径
+            }
+        }
+    });
+</script>
+</body>
+</html>
